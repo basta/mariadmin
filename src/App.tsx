@@ -1,30 +1,52 @@
 // src/App.tsx
 import * as React from "react";
 import { Admin, Resource, Layout, LayoutProps } from "react-admin";
-import dataProvider from "./dataProvider"; // Import the TS data provider
-import { PaintingList, PaintingCreate, PaintingEdit } from "./paintings"; // Import TSX components
-import { MyAppBar } from "./MyAppBar"; // Import TSX AppBar
-import PaletteIcon from "@mui/icons-material/Palette"; // Icon for paintings
+import dataProvider from "./dataProvider";
+import { PaintingList, PaintingCreate, PaintingEdit } from "./paintings";
+// --- Import new project components ---
+import { ProjektList, ProjektCreate, ProjektEdit } from "./projekty";
+// --- Import new exhibition components ---
+import { VystavaList, VystavaCreate, VystavaEdit } from "./vystavy";
+import { MyAppBar } from "./MyAppBar";
 
-// Optional: Custom Layout Component typed with LayoutProps
+// --- Import Icons ---
+import PaletteIcon from "@mui/icons-material/Palette";
+import BookIcon from "@mui/icons-material/Book"; // Icon for projects
+import EventIcon from "@mui/icons-material/Event"; // Icon for exhibitions
+
 const MyLayout: React.FC<LayoutProps> = (props) => (
-  <Layout {...props} appBar={MyAppBar} />
+    <Layout {...props} appBar={MyAppBar} />
 );
 
 const App: React.FC = () => (
-  <Admin
-    dataProvider={dataProvider}
-    layout={MyLayout} // Use custom typed layout
-  >
-    <Resource
-      name="paintings" // Matches the API endpoint resource name
-      list={PaintingList}
-      create={PaintingCreate}
-      edit={PaintingEdit}
-      icon={PaletteIcon} // Assign an icon to the resource in the menu
-      recordRepresentation={(record) => `${record.title} (#${record.id})`} // More descriptive representation
-    />
-  </Admin>
+    <Admin dataProvider={dataProvider} layout={MyLayout}>
+        <Resource
+            name="paintings"
+            list={PaintingList}
+            create={PaintingCreate}
+            edit={PaintingEdit}
+            icon={PaletteIcon}
+            recordRepresentation={(record) => `${record.title} (#${record.id})`}
+        />
+        {/* --- Add Project Resource --- */}
+        <Resource
+            name="projekty"
+            list={ProjektList}
+            create={ProjektCreate}
+            edit={ProjektEdit}
+            icon={BookIcon}
+            recordRepresentation="title"
+        />
+        {/* --- Add Exhibition Resource --- */}
+        <Resource
+            name="vystavy"
+            list={VystavaList}
+            create={VystavaCreate}
+            edit={VystavaEdit}
+            icon={EventIcon}
+            recordRepresentation="title"
+        />
+    </Admin>
 );
 
 export default App;
