@@ -1,52 +1,67 @@
 // src/App.tsx
 import * as React from "react";
-import { Admin, Resource, Layout, LayoutProps } from "react-admin";
+import {
+  Admin,
+  Resource,
+  Layout,
+  LayoutProps,
+  CustomRoutes,
+} from "react-admin";
+import { Route } from "react-router-dom";
 import dataProvider from "./dataProvider";
 import { PaintingList, PaintingCreate, PaintingEdit } from "./paintings";
-// --- Import new project components ---
 import { ProjektList, ProjektCreate, ProjektEdit } from "./projekty";
-// --- Import new exhibition components ---
 import { VystavaList, VystavaCreate, VystavaEdit } from "./vystavy";
+import { ReorderList } from "./ReorderList";
 import { MyAppBar } from "./MyAppBar";
-
-// --- Import Icons ---
 import PaletteIcon from "@mui/icons-material/Palette";
-import BookIcon from "@mui/icons-material/Book"; // Icon for projects
-import EventIcon from "@mui/icons-material/Event"; // Icon for exhibitions
+import BookIcon from "@mui/icons-material/Book";
+import EventIcon from "@mui/icons-material/Event";
 
 const MyLayout: React.FC<LayoutProps> = (props) => (
-    <Layout {...props} appBar={MyAppBar} />
+  <Layout {...props} appBar={MyAppBar} />
 );
 
 const App: React.FC = () => (
-    <Admin dataProvider={dataProvider} layout={MyLayout}>
-        <Resource
-            name="paintings"
-            list={PaintingList}
-            create={PaintingCreate}
-            edit={PaintingEdit}
-            icon={PaletteIcon}
-            recordRepresentation={(record) => `${record.title} (#${record.id})`}
-        />
-        {/* --- Add Project Resource --- */}
-        <Resource
-            name="projekty"
-            list={ProjektList}
-            create={ProjektCreate}
-            edit={ProjektEdit}
-            icon={BookIcon}
-            recordRepresentation="title"
-        />
-        {/* --- Add Exhibition Resource --- */}
-        <Resource
-            name="vystavy"
-            list={VystavaList}
-            create={VystavaCreate}
-            edit={VystavaEdit}
-            icon={EventIcon}
-            recordRepresentation="title"
-        />
-    </Admin>
+  <Admin dataProvider={dataProvider} layout={MyLayout}>
+    <Resource
+      name="paintings"
+      list={PaintingList}
+      create={PaintingCreate}
+      edit={PaintingEdit}
+      icon={PaletteIcon}
+    />
+    <Resource
+      name="projekty"
+      list={ProjektList}
+      create={ProjektCreate}
+      edit={ProjektEdit}
+      icon={BookIcon}
+    />
+    <Resource
+      name="vystavy"
+      list={VystavaList}
+      create={VystavaCreate}
+      edit={VystavaEdit}
+      icon={EventIcon}
+    />
+
+    {/* Add custom routes for the reorder pages */}
+    <CustomRoutes>
+      <Route
+        path="/paintings/reorder"
+        element={<ReorderList resource="paintings" />}
+      />
+      <Route
+        path="/projekty/reorder"
+        element={<ReorderList resource="projekty" />}
+      />
+      <Route
+        path="/vystavy/reorder"
+        element={<ReorderList resource="vystavy" />}
+      />
+    </CustomRoutes>
+  </Admin>
 );
 
 export default App;
