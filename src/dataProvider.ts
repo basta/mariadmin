@@ -22,7 +22,7 @@ import {
 // Use the current window's protocol and hostname, but fix the port to 8000
 const API_PORT = "8000"; // Define the API port
 // Construct the base URL for the API dynamically
-const API_URL = `${window.location.protocol}//${window.location.hostname}:${API_PORT}`;
+const API_URL = `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
 // Example: If accessed via http://example.com, API_URL becomes http://example.com:8000
 // Example: If accessed via http://localhost:5173, API_URL becomes http://localhost:8000
 console.log(`API URL set to: ${API_URL}`); // Optional: Log the URL for debugging
