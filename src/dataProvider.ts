@@ -20,7 +20,15 @@ import {
 } from "react-admin";
 
 const API_PORT = "8000";
-const API_URL = `${window.location.protocol}//${window.location.hostname}:${window.location.port}`;
+const hostname = window.location.hostname;
+const isLocalhost =
+  hostname === "localhost" ||
+  hostname === "127.0.0.1" ||
+  hostname.startsWith("192.168."); // Also cover local network development
+
+const API_URL = isLocalhost
+  ? `${window.location.protocol}//${hostname}:${API_PORT}`
+  : `${window.location.protocol}//${hostname}:${window.location.port}`;
 console.log(`API URL set to: ${API_URL}`);
 
 // --- Record Type Definitions (with 'order' field) ---
