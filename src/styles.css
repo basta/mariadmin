@@ -1,0 +1,789 @@
+/* ==========================================================================
+   Maří Magdalena — the app the artist runs the website from.
+
+   It borrows the site's palette and faces rather than a component library's,
+   because she should recognise this as her own website's back room and not as
+   somebody's admin panel. Same rules as the site: two grounds, no cards, no
+   shadows, no rounded corners — structure carried by hairlines and space.
+
+   Phone first. Every control is at least 44px in the direction a thumb
+   travels, the primary actions sit at the bottom where a thumb already is, and
+   the layout pays attention to the notch and the home indicator.
+   ========================================================================== */
+
+:root {
+  --ink: #0b0a08;
+  --ink-deep: #060505;
+  --ink-raised: #131110;
+
+  --bone: #efeae1;
+  --bone-2: #b7afa2;
+  --bone-3: #948c80;
+  --line: rgb(239 234 225 / 13%);
+  --line-strong: rgb(239 234 225 / 26%);
+
+  --gold: #e3a63c;
+  --gold-deep: #b5802a;
+
+  /* Sold, and anything destructive. Chosen against ink at 5.1:1. */
+  --alarm: #d8695c;
+
+  --serif: "Bodoni Moda", Georgia, serif;
+  --sans: "Jost", system-ui, -apple-system, sans-serif;
+
+  --gutter: 1rem;
+  --tabs-h: 3.75rem;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* Where the phone's own furniture is. Zero everywhere else. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--ink);
+  color: var(--bone);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  /* iOS zooms the page when a font smaller than 16px is focused, and never
+     zooms back out. Every input below inherits this. */
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* One visible focus treatment, gold on ink, everywhere. */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* ---------------------------------------------------------------- shell -- */
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.main {
+  flex: 1;
+  /* Room for the tab bar, which is fixed over the foot of the page. */
+  padding-bottom: calc(var(--tabs-h) + var(--safe-bottom) + 4.5rem);
+}
+
+/* Header and banner travel together. Two separately sticky bars at top: 0
+   would sit on top of each other the moment the page scrolled. */
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--ink);
+}
+
+.head {
+  background: var(--ink);
+  border-bottom: 1px solid var(--line);
+  padding: calc(var(--safe-top) + 0.6rem) var(--gutter) 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.head__title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* ---------------------------------------------------------------- tabs --- */
+.tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--ink-deep);
+  border-top: 1px solid var(--line);
+  padding-bottom: var(--safe-bottom);
+}
+
+.tab {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-top: 2px solid transparent;
+  margin-top: -1px;
+  height: var(--tabs-h);
+  color: var(--bone-3);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab--on {
+  color: var(--bone);
+  border-top-color: var(--gold);
+}
+
+/* ---------------------------------------------------------------- banner - */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem var(--gutter);
+  background: var(--ink-raised);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.banner__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9375rem;
+}
+
+.banner__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------- buttons */
+.btn {
+  appearance: none;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.1rem;
+  background: none;
+  color: var(--bone);
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color 0.2s var(--ease),
+    color 0.2s var(--ease);
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn--gold {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.btn--gold:hover:not(:disabled) {
+  background: var(--gold-deep);
+  border-color: var(--gold-deep);
+  color: var(--ink);
+}
+
+.btn--danger {
+  color: var(--alarm);
+  border-color: rgb(216 105 92 / 45%);
+}
+
+.btn--danger:hover:not(:disabled) {
+  color: var(--alarm);
+  border-color: var(--alarm);
+}
+
+.btn--quiet {
+  border-color: transparent;
+  color: var(--bone-3);
+}
+
+.btn--wide {
+  width: 100%;
+}
+
+/* The one that adds a photograph. Above the tab bar, right-hand side, where
+   the thumb of the hand holding the phone already rests. */
+.fab {
+  position: fixed;
+  right: var(--gutter);
+  bottom: calc(var(--tabs-h) + var(--safe-bottom) + 1rem);
+  z-index: 28;
+  width: 3.5rem;
+  height: 3.5rem;
+  display: grid;
+  place-items: center;
+  background: var(--gold);
+  color: var(--ink);
+  border: 0;
+  border-radius: 50%;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.fab:disabled {
+  opacity: 0.5;
+}
+
+/* ---------------------------------------------------------------- grid --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 2px;
+}
+
+@media (min-width: 700px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    padding: 4px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.tile {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--ink-deep);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  /* Long-press starts a drag, so the browser must not start a text selection
+     or its own callout on the same gesture. */
+  -webkit-touch-callout: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.tile__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tile--dragging {
+  opacity: 0.35;
+}
+
+.tile__badge {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 0.2rem 0.4rem;
+  background: var(--ink);
+  color: var(--alarm);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.tile__lead {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 0.2rem 0.4rem;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------------- feed --- */
+.feed {
+  padding: 0 var(--gutter);
+}
+
+.card {
+  display: flex;
+  gap: 0.875rem;
+  width: 100%;
+  padding: 0.875rem 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.card__thumb {
+  flex: 0 0 4.5rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: cover;
+  background: var(--ink-deep);
+}
+
+.card__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.card__date {
+  color: var(--gold);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card__title {
+  margin: 0.15rem 0 0;
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.card__meta {
+  margin-top: 0.25rem;
+  color: var(--bone-3);
+  font-size: 0.8125rem;
+}
+
+/* ---------------------------------------------------------------- sheet -- */
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  animation: sheet-in 0.24s var(--ease);
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(2rem);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: calc(var(--safe-top) + 0.6rem) var(--gutter) 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.sheet__title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  font-weight: 400;
+}
+
+.sheet__body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--gutter) var(--gutter) 2rem;
+}
+
+.sheet__foot {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem var(--gutter) calc(0.75rem + var(--safe-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--ink-deep);
+}
+
+.sheet__foot .btn {
+  flex: 1;
+}
+
+.sheet__photo {
+  width: 100%;
+  max-height: 45vh;
+  object-fit: contain;
+  background: var(--ink-deep);
+  margin-bottom: 1rem;
+}
+
+/* ---------------------------------------------------------------- fields - */
+.field {
+  display: block;
+  margin-bottom: 1.25rem;
+}
+
+.field__label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--bone-3);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.field__hint {
+  margin-top: 0.35rem;
+  color: var(--bone-3);
+  font-size: 0.8125rem;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--ink-deep);
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+  color: var(--bone);
+}
+
+.textarea {
+  min-height: 7rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--gold);
+  outline: none;
+}
+
+.input--invalid {
+  border-color: var(--alarm);
+}
+
+/* A switch, big enough to hit without looking. */
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.5rem 0;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.toggle__track {
+  flex: 0 0 3.25rem;
+  height: 1.75rem;
+  padding: 2px;
+  background: var(--ink-deep);
+  border: 1px solid var(--line-strong);
+  /* Both of these are spans; without a box to live in the knob has no size. */
+  display: flex;
+  align-items: center;
+  transition:
+    background 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+
+.toggle[aria-pressed="true"] .toggle__track {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.toggle__knob {
+  flex: 0 0 1.375rem;
+  height: 1.375rem;
+  background: var(--bone-3);
+  transition:
+    transform 0.2s var(--ease),
+    background 0.2s var(--ease);
+}
+
+.toggle[aria-pressed="true"] .toggle__knob {
+  background: var(--ink);
+  transform: translateX(1.5rem);
+}
+
+/* ---------------------------------------------------------------- links -- */
+.links__row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.links__row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.links__drop {
+  flex: 0 0 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--line-strong);
+  background: none;
+  color: var(--bone-3);
+  cursor: pointer;
+}
+
+.links__drop:hover {
+  color: var(--alarm);
+  border-color: var(--alarm);
+}
+
+/* ---------------------------------------------------------------- states - */
+.state {
+  padding: 3rem var(--gutter);
+  text-align: center;
+  color: var(--bone-3);
+}
+
+.state__title {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  color: var(--bone);
+  margin: 0 0 0.5rem;
+}
+
+.error {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.85rem;
+  border-left: 2px solid var(--alarm);
+  background: var(--ink-raised);
+  color: var(--bone);
+  font-size: 0.9375rem;
+  white-space: pre-wrap;
+}
+
+.toast {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--tabs-h) + var(--safe-bottom) + 1rem);
+  z-index: 45;
+  padding: 0.7rem 0.85rem;
+  background: var(--ink-raised);
+  border: 1px solid var(--line-strong);
+  border-left: 2px solid var(--gold);
+  font-size: 0.9375rem;
+}
+
+.toast--bad {
+  border-left-color: var(--alarm);
+}
+
+/* ---------------------------------------------------------------- login -- */
+.login {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem var(--gutter);
+  max-width: 24rem;
+  margin: 0 auto;
+}
+
+.login__mark {
+  width: 100%;
+  max-width: 15rem;
+  margin: 0 auto 1rem;
+}
+
+.login__note {
+  margin: 0;
+  text-align: center;
+  color: var(--bone-3);
+  font-size: 0.8125rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.login__input {
+  text-align: center;
+  letter-spacing: 0.2em;
+}
+
+/* ---------------------------------------------------------------- publish */
+.publish {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  padding: 2rem var(--gutter) calc(2rem + var(--safe-bottom));
+  text-align: center;
+}
+
+.publish__step {
+  font-family: var(--serif);
+  font-size: 1.375rem;
+  max-width: 22rem;
+  margin: 0;
+}
+
+/* ✓ or ! — big enough to be read across a room, which is roughly where the
+   phone ends up while a publish runs. */
+.publish__mark {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--gold);
+}
+
+.publish__mark--bad {
+  color: var(--alarm);
+}
+
+.publish__detail {
+  margin: 0;
+  color: var(--bone-3);
+  font-size: 0.875rem;
+  max-width: 30rem;
+}
+
+/* The failure case carries build.py's own output, which is a wall of lines
+   and only readable ranged left. */
+.publish__detail--log {
+  white-space: pre-wrap;
+  text-align: left;
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.publish .btn {
+  max-width: 18rem;
+}
+
+/* A slow gold sweep, so a long publish looks like work rather than a hang. */
+.publish__bar {
+  width: min(18rem, 70vw);
+  height: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.publish__bar::after {
+  content: "";
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: var(--gold);
+  animation: sweep 1.4s var(--ease) infinite;
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(350%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .publish__bar::after {
+    animation: none;
+    width: 100%;
+  }
+}
+
+/* --------------------------------------------------------------- confirm - */
+.confirm {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  background: rgb(6 5 5 / 70%);
+}
+
+.confirm__panel {
+  width: 100%;
+  padding: 1.25rem var(--gutter) calc(1.25rem + var(--safe-bottom));
+  background: var(--ink);
+  border-top: 1px solid var(--line-strong);
+}
+
+.confirm__text {
+  margin: 0 0 1.25rem;
+}
+
+.confirm__row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.confirm__row .btn {
+  flex: 1;
+}
+
+@media (min-width: 700px) {
+  .confirm {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .confirm__panel {
+    max-width: 26rem;
+    border: 1px solid var(--line-strong);
+  }
+}

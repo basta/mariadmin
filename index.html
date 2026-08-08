@@ -1,119 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta
-            name="viewport"
-            content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
-        />
-        <meta name="theme-color" content="#000000" />
-        <link rel="manifest" href="./manifest.json" />
-        <link rel="shortcut icon" href="./favicon.ico" />
-        <title>mariadmin</title>
-        <style>
-            .loader-container {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex-direction: column;
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background-color: #fafafa;
-            }
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <!-- viewport-fit=cover so the layout can pay attention to the notch and the
+         home indicator through env(safe-area-inset-*). -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0b0a08" />
+    <meta name="color-scheme" content="dark" />
 
-            /* CSS Spinner from https://projects.lukehaas.me/css-loaders/ */
+    <title>Maří Magdalena — web</title>
 
-            .loader,
-            .loader:before,
-            .loader:after {
-                border-radius: 50%;
-            }
+    <link rel="manifest" href="/admin/manifest.webmanifest" />
+    <link rel="icon" href="/admin/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/admin/apple-touch-icon.png" />
+    <!-- Added to the home screen this opens without Safari's chrome, which is
+         what makes it feel like the app she already knows. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Maří web" />
 
-            .loader {
-                color: #283593;
-                font-size: 11px;
-                text-indent: -99999em;
-                margin: 55px auto;
-                position: relative;
-                width: 10em;
-                height: 10em;
-                box-shadow: inset 0 0 0 1em;
-                -webkit-transform: translateZ(0);
-                -ms-transform: translateZ(0);
-                transform: translateZ(0);
-            }
+    <!-- The site's own faces, served from the same origin by api.py. No
+         third-party request, and the diacritics are already subsetted in. -->
+    <link rel="stylesheet" href="/assets/fonts/fonts.css" />
+  </head>
 
-            .loader:before,
-            .loader:after {
-                position: absolute;
-                content: '';
-            }
-
-            .loader:before {
-                width: 5.2em;
-                height: 10.2em;
-                background: #fafafa;
-                border-radius: 10.2em 0 0 10.2em;
-                top: -0.1em;
-                left: -0.1em;
-                -webkit-transform-origin: 5.2em 5.1em;
-                transform-origin: 5.2em 5.1em;
-                -webkit-animation: load2 2s infinite ease 1.5s;
-                animation: load2 2s infinite ease 1.5s;
-            }
-
-            .loader:after {
-                width: 5.2em;
-                height: 10.2em;
-                background: #fafafa;
-                border-radius: 0 10.2em 10.2em 0;
-                top: -0.1em;
-                left: 5.1em;
-                -webkit-transform-origin: 0px 5.1em;
-                transform-origin: 0px 5.1em;
-                -webkit-animation: load2 2s infinite ease;
-                animation: load2 2s infinite ease;
-            }
-
-            @-webkit-keyframes load2 {
-                0% {
-                    -webkit-transform: rotate(0deg);
-                    transform: rotate(0deg);
-                }
-                100% {
-                    -webkit-transform: rotate(360deg);
-                    transform: rotate(360deg);
-                }
-            }
-
-            @keyframes load2 {
-                0% {
-                    -webkit-transform: rotate(0deg);
-                    transform: rotate(0deg);
-                }
-                100% {
-                    -webkit-transform: rotate(360deg);
-                    transform: rotate(360deg);
-                }
-            }
-        </style>
-        <link rel="preconnect" href="https://fonts.gstatic.com" />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
-            rel="stylesheet"
-        />
-    </head>
-
-    <body>
-        <noscript> You need to enable JavaScript to run this app. </noscript>
-        <div id="root">
-            <div class="loader-container">
-                <div class="loader">Loading...</div>
-            </div>
-        </div>
-    </body>
-    <script type="module" src="/src/index.tsx"></script>
+  <body>
+    <noscript>Tato stránka potřebuje JavaScript.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
