@@ -26,7 +26,7 @@ import {
 import { Confirm, Empty, Toast } from "./bits";
 import { EditSheet } from "./EditSheet";
 import { FeedTab } from "./FeedTab";
-import { GridTab } from "./GridTab";
+import { GridTab, moved } from "./GridTab";
 import { Login } from "./Login";
 import { PublishOverlay } from "./PublishOverlay";
 
@@ -143,6 +143,38 @@ export function App() {
 
   function setItems(next: Item[]) {
     setLists((all) => ({ ...all, [tab]: next }));
+  }
+
+  /** Re-read a dated list after a save and scroll to the record saved. */
+  async function settle(resource: Resource, id: number) {
+    try {
+      const fresh = await api.list(resource);
+      setLists((all) => ({ ...all, [resource]: fresh }));
+      requestAnimationFrame(() =>
+        document
+          .querySelector(`[data-id="${id}"]`)
+          ?.scrollIntoView({ block: "center", behavior: "smooth" }),
+      );
+    } catch (error) {
+      if (error instanceof Unauthorized) setSignedIn(false);
+    }
+  }
+
+  async function move(resource: Resource, id: number, where: "start" | "end") {
+    const before = lists[resource] ?? [];
+    const next = moved(resource, before, id, where);
+    setLists((all) => ({ ...all, [resource]: next }));
+    try {
+      await api.reorder(
+        resource,
+        next.map((item) => item.id),
+      );
+      void refreshPending();
+      say(where === "start" ? "Přesunuto na začátek." : "Přesunuto na konec.");
+    } catch (error) {
+      setLists((all) => ({ ...all, [resource]: before }));
+      guard(error, "Pořadí se nepodařilo uložit.");
+    }
   }
 
   async function startPublish() {
@@ -314,18 +346,28 @@ export function App() {
           item={sheet.item}
           onClose={() => setSheet(null)}
           onSaved={(saved) => {
-            const current = lists[sheet.resource] ?? [];
+            const resource = sheet.resource;
+            const current = lists[resource] ?? [];
             const known = current.some((item) => item.id === saved.id);
             setLists((all) => ({
               ...all,
-              [sheet.resource]: known
+              [resource]: known
                 ? current.map((item) => (item.id === saved.id ? saved : item))
                 : [...current, saved],
             }));
             setSheet(null);
             void refreshPending();
             say("Uloženo.");
+            // Projects and exhibitions sit where their date puts them, which
+            // only the server can work out from "Červen - Srpen 2024". Ask
+            // again, then show her where it landed.
+            if (!IS_GRID[resource]) void settle(resource, saved.id);
           }}
+          onMove={
+            sheet.item
+              ? (where) => move(sheet.resource, sheet.item!.id, where)
+              : undefined
+          }
           onDeleted={(id) => {
             setLists((all) => ({
               ...all,

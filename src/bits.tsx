@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import type { Link } from "./api";
 
 /** A full-screen sheet. Escape closes it, and focus starts inside it. */
@@ -197,7 +198,10 @@ export function Confirm({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  return (
+  // Portalled to <body>. Rendered in place, a confirm inside the edit sheet
+  // lived in the sheet's stacking context (z 40) and the toast (z 45) sat on
+  // top of the question it was asking.
+  return createPortal(
     <div className="confirm" role="dialog" aria-modal="true">
       <div className="confirm__panel">
         <p className="confirm__text">{text}</p>
@@ -210,7 +214,8 @@ export function Confirm({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

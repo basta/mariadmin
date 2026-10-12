@@ -61,6 +61,7 @@ export function EditSheet({
   onClose,
   onSaved,
   onDeleted,
+  onMove,
 }: {
   resource: Resource;
   /** null when adding a project or exhibition from scratch. */
@@ -68,6 +69,8 @@ export function EditSheet({
   onClose: () => void;
   onSaved: (saved: Item) => void;
   onDeleted: (id: number) => void;
+  /** Start or end of its block on the page; the sheet stays open. */
+  onMove?: (where: "start" | "end") => Promise<void>;
 }) {
   const start = valuesOf(item);
   const [title, setTitle] = useState(start.title);
@@ -221,6 +224,9 @@ export function EditSheet({
           <input
             className="input"
             type="text"
+            placeholder={
+              resource === "paintings" ? "Jak se obraz jmenuje?" : ""
+            }
             value={title}
             onChange={(event) => setTitle(event.target.value)}
           />
@@ -276,6 +282,31 @@ export function EditSheet({
           První fotka v galerii je ta velká nahoře na stránce. Pořadí změníte
           přetažením v mřížce.
         </p>
+      ) : null}
+
+      {/* Dragging one painting past eighty others is a long way to carry it
+          on a phone. The common move — this one first — is one tap. */}
+      {!isNew &&
+      onMove &&
+      (resource === "paintings" || resource === "galerie") ? (
+        <div className="sheet__move">
+          <button
+            type="button"
+            className="btn"
+            disabled={busy}
+            onClick={() => void onMove("start")}
+          >
+            {resource === "galerie" ? "Nastavit jako titulní" : "Na začátek"}
+          </button>
+          <button
+            type="button"
+            className="btn"
+            disabled={busy}
+            onClick={() => void onMove("end")}
+          >
+            Na konec
+          </button>
+        </div>
       ) : null}
 
       {confirmDelete ? (

@@ -27,14 +27,80 @@ import { CSS } from "@dnd-kit/utilities";
 
 import { api, thumb, type Item, type Resource } from "./api";
 
+/** How many paintings the home page shows, from the top of the list. */
+export const HOME_COUNT = 9;
+
+/**
+ * The groups a grid is dragged in. /obrazy prints the paintings for sale and
+ * then the sold ones, each block in `order`, so one mixed grid promised an
+ * order the page never showed: a sold painting dragged to the front landed
+ * behind forty-one others. Galerie is one group.
+ */
+export function groupsOf(resource: Resource, items: Item[]): Item[][] {
+  if (resource !== "paintings") return [items];
+  return [
+    items.filter((item) => !item.sold),
+    items.filter((item) => item.sold),
+  ];
+}
+
+/**
+ * Put one group's new order back into the slots that group held.
+ *
+ * The home page takes the first nine of the whole list, sold or not, so the
+ * two groups stay interleaved exactly as they were; only the paintings inside
+ * the group that moved change places.
+ */
+export function refill(
+  resource: Resource,
+  items: Item[],
+  groupIndex: number,
+  nextGroup: Item[],
+): Item[] {
+  if (resource !== "paintings") return nextGroup;
+  const sold = groupIndex === 1;
+  let taken = 0;
+  return items.map((item) =>
+    Boolean(item.sold) === sold ? nextGroup[taken++] : item,
+  );
+}
+
+/** One painting to the start or the end of its own group. */
+export function moved(
+  resource: Resource,
+  items: Item[],
+  id: number,
+  where: "start" | "end",
+): Item[] {
+  const groups = groupsOf(resource, items);
+  const groupIndex = groups.findIndex((group) =>
+    group.some((item) => item.id === id),
+  );
+  if (groupIndex === -1) return items;
+  const group = groups[groupIndex];
+  const item = group.find((entry) => entry.id === id)!;
+  const rest = group.filter((entry) => entry.id !== id);
+  return refill(
+    resource,
+    items,
+    groupIndex,
+    where === "start" ? [item, ...rest] : [...rest, item],
+  );
+}
+
+const GROUP_LABEL = ["Na prodej", "Prodáno"];
+
 function Tile({
   item,
   lead,
+  home,
   onOpen,
 }: {
   item: Item;
   /** First in the grid, which for galerie is the plate at the top of the page. */
   lead: boolean;
+  /** Among the paintings the home page picks up. */
+  home: boolean;
   onOpen: () => void;
 }) {
   const {
@@ -69,6 +135,7 @@ function Tile({
       />
       {item.sold ? <span className="tile__badge">Prodáno</span> : null}
       {lead ? <span className="tile__lead">Titulní</span> : null}
+      {home ? <span className="tile__lead">Úvod</span> : null}
     </button>
   );
 }
@@ -102,16 +169,22 @@ export function GridTab({
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
-  async function onDragEnd(event: DragEndEvent) {
+  async function onDragEnd(groupIndex: number, event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    const from = items.findIndex((item) => item.id === active.id);
-    const to = items.findIndex((item) => item.id === over.id);
+    const group = groupsOf(resource, items)[groupIndex];
+    const from = group.findIndex((item) => item.id === active.id);
+    const to = group.findIndex((item) => item.id === over.id);
     if (from === -1 || to === -1) return;
 
     const before = items;
-    const next = arrayMove(items, from, to);
+    const next = refill(
+      resource,
+      items,
+      groupIndex,
+      arrayMove(group, from, to),
+    );
     onItems(next); // Move it under her finger first; ask the server after.
     try {
       await api.reorder(
@@ -151,8 +224,17 @@ export function GridTab({
       setUploading(false);
       onBusy(null);
       if (added.length > 0) {
-        onItems([...items, ...added]);
+        // Where the server put them: each painting is inserted at the front,
+        // so the last one picked ends up first.
+        onItems(
+          resource === "paintings"
+            ? [...added.slice().reverse(), ...items]
+            : [...items, ...added],
+        );
         onChanged();
+        // One painting is a painting to name, now, the way a post asks for
+        // its caption. Several at once are named afterwards, one by one.
+        if (resource === "paintings" && chosen.length === 1) onOpen(added[0]);
       }
       // Let her pick the same picture again after a failure.
       if (picker.current) picker.current.value = "";
@@ -161,31 +243,53 @@ export function GridTab({
 
   return (
     <>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={onDragEnd}
-      >
-        <SortableContext
-          items={items.map((item) => item.id)}
-          strategy={rectSortingStrategy}
-        >
-          <div className="grid">
-            {/* "Titulní" is a statement about position, so it reads off the
-                position. Reading `item.order` instead left the badge behind on
-                the tile she had just dragged away: the reorder is optimistic,
-                and the server's renumbering never comes back to the client. */}
-            {items.map((item, index) => (
-              <Tile
-                key={item.id}
-                item={item}
-                lead={resource === "galerie" && index === 0}
-                onOpen={() => onOpen(item)}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+      {resource === "paintings" && items.length > 0 ? (
+        <p className="grid__hint">
+          Pořadí změníte podržením a přetažením. Obrazy označené „Úvod“ jsou i
+          na úvodní stránce.
+        </p>
+      ) : null}
+      {groupsOf(resource, items).map((group, groupIndex) =>
+        group.length === 0 && resource === "paintings" ? null : (
+          <section key={groupIndex}>
+            {resource === "paintings" ? (
+              <h2 className="grid__head">
+                {GROUP_LABEL[groupIndex]} <span>{group.length}</span>
+              </h2>
+            ) : null}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={(event) => void onDragEnd(groupIndex, event)}
+            >
+              <SortableContext
+                items={group.map((item) => item.id)}
+                strategy={rectSortingStrategy}
+              >
+                <div className="grid">
+                  {/* "Titulní" and "Úvod" are statements about position, so
+                      they read off the position. Reading `item.order` instead
+                      left the badge behind on the tile she had just dragged
+                      away: the reorder is optimistic, and the server's
+                      renumbering never comes back to the client. */}
+                  {group.map((item) => (
+                    <Tile
+                      key={item.id}
+                      item={item}
+                      lead={resource === "galerie" && item === items[0]}
+                      home={
+                        resource === "paintings" &&
+                        items.indexOf(item) < HOME_COUNT
+                      }
+                      onOpen={() => onOpen(item)}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </section>
+        ),
+      )}
 
       <input
         ref={picker}

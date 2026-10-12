@@ -95,7 +95,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw new ApiError("Není připojení k internetu.");
   }
 
-  if (response.status === 401) throw new Unauthorized("Nejste přihlášena.");
+  // A 401 from the login itself is a wrong password, not a lost session: it
+  // falls through to the server's own sentence. Turning it into "Nejste
+  // přihlášena" told her she was not logged in while she was trying to.
+  if (response.status === 401 && path !== "/login")
+    throw new Unauthorized("Nejste přihlášena.");
   if (response.status === 204) return undefined as T;
 
   const body = await response.text();

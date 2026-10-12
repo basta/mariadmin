@@ -290,6 +290,30 @@ img {
   }
 }
 
+/* Obrazy is two grids, in the two blocks /obrazy prints. */
+.grid__hint {
+  margin: 0;
+  padding: 0.75rem var(--gutter) 0;
+  color: var(--bone-3);
+  font-size: 0.8125rem;
+}
+
+.grid__head {
+  margin: 0;
+  padding: 1.25rem var(--gutter) 0.6rem;
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--bone);
+}
+
+.grid__head span {
+  margin-left: 0.35rem;
+  color: var(--bone-3);
+  font-family: var(--sans);
+  font-size: 0.875rem;
+}
+
 .tile {
   position: relative;
   aspect-ratio: 1;
@@ -473,6 +497,16 @@ img {
   text-transform: uppercase;
 }
 
+.sheet__move {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.sheet__move .btn {
+  flex: 1;
+}
+
 .field__hint {
   margin-top: 0.35rem;
   color: var(--bone-3);
@@ -611,7 +645,9 @@ img {
 .toast {
   position: fixed;
   left: var(--gutter);
-  right: var(--gutter);
+  /* Short of the + button, which sits on the same line: full width, every
+     "Uloženo." hid the one control she reaches for next. */
+  right: calc(var(--gutter) + 3.5rem + 0.75rem);
   bottom: calc(var(--tabs-h) + var(--safe-bottom) + 1rem);
   z-index: 45;
   padding: 0.7rem 0.85rem;

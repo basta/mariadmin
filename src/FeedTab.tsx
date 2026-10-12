@@ -38,6 +38,7 @@ export function FeedTab({
             type="button"
             className="card"
             key={item.id}
+            data-id={item.id}
             onClick={() => onOpen(item)}
           >
             {item.image_path ? (
