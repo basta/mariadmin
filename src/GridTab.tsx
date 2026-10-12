@@ -10,7 +10,7 @@
 import { useRef, useState } from "react";
 import {
   DndContext,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   closestCenter,
   useSensor,
@@ -121,6 +121,9 @@ function Tile({
       className={`tile ${isDragging ? "tile--dragging" : ""}`}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       onClick={onOpen}
+      // A held finger is the start of a drag here, not a request for
+      // Android's "download image" menu.
+      onContextMenu={(event) => event.preventDefault()}
       aria-label={item.title || `Fotka ${item.id}`}
       {...attributes}
       {...listeners}
@@ -161,12 +164,17 @@ export function GridTab({
   const [uploading, setUploading] = useState(false);
 
   // A tap has to keep opening the sheet, so a drag only begins after the
-  // finger has been held still for a moment. Pointer covers the desktop.
+  // finger has been held still for a moment. Mouse covers the desktop.
+  //
+  // MouseSensor, not PointerSensor: a finger fires pointer events too, ahead
+  // of its touch events, so PointerSensor claimed every touch, waited for 8px
+  // of movement, and lost it to the page scrolling (pointercancel). The
+  // long-press below never got a turn and nothing could be dragged on a phone.
   const sensors = useSensors(
     useSensor(TouchSensor, {
       activationConstraint: { delay: 220, tolerance: 8 },
     }),
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
   );
 
   async function onDragEnd(groupIndex: number, event: DragEndEvent) {
