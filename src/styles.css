@@ -298,6 +298,10 @@ img {
   font-size: 0.8125rem;
 }
 
+.grid__hint--todo {
+  color: var(--bone);
+}
+
 .grid__head {
   margin: 0;
   padding: 1.25rem var(--gutter) 0.6rem;
@@ -361,6 +365,19 @@ img {
   font-size: 0.625rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+/* Something she still has to fill in. Lower case and untracked, so it reads
+   as a note to herself rather than a state like Prodáno or Úvod, and so it
+   still fits beside Úvod on a 360px phone's three-across grid. */
+.tile__todo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0.2rem 0.4rem;
+  background: var(--ink);
+  color: var(--bone);
+  font-size: 0.6875rem;
 }
 
 /* ---------------------------------------------------------------- feed --- */

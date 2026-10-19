@@ -48,6 +48,8 @@ export interface Item {
   image_v?: string | null;
   title?: string;
   sold?: boolean;
+  /** Year the painting was made. Absent on paintings added before the field. */
+  year?: number | null;
   filename?: string;
   date?: string | null;
   image?: string | null;

@@ -31,6 +31,7 @@ const TITLE: Record<Resource, { edit: string; add: string }> = {
 interface Values {
   title: string;
   sold: boolean;
+  year: string;
   date: string;
   description: string;
   video: string;
@@ -48,6 +49,7 @@ function valuesOf(item: Item | null): Values {
   return {
     title: item?.title ?? "",
     sold: Boolean(item?.sold),
+    year: item?.year ? String(item.year) : "",
     date: item?.date ?? "",
     description: item?.description ?? "",
     video: item?.video_url ?? "",
@@ -75,6 +77,7 @@ export function EditSheet({
   const start = valuesOf(item);
   const [title, setTitle] = useState(start.title);
   const [sold, setSold] = useState(start.sold);
+  const [year, setYear] = useState(start.year);
   const [date, setDate] = useState(start.date);
   const [description, setDescription] = useState(start.description);
   const [video, setVideo] = useState(start.video);
@@ -120,7 +123,11 @@ export function EditSheet({
       };
     }
     return resource === "paintings"
-      ? { title: values.title, sold: values.sold }
+      ? {
+          title: values.title,
+          sold: values.sold,
+          year: values.year.trim() ? Number(values.year.trim()) : null,
+        }
       : {};
   }
 
@@ -136,11 +143,23 @@ export function EditSheet({
       setError("Opravte prosím odkaz na video — má začínat na https://");
       return;
     }
+    if (resource === "paintings" && !yearLooksRight(year)) {
+      setError("Rok napište čtyřmi číslicemi, třeba 2023.");
+      return;
+    }
 
     setBusy(true);
     setError(null);
     try {
-      const body = bodyOf({ title, sold, date, description, video, links });
+      const body = bodyOf({
+        title,
+        sold,
+        year,
+        date,
+        description,
+        video,
+        links,
+      });
 
       let saved: Item;
       if (isNew) {
@@ -234,7 +253,21 @@ export function EditSheet({
       ) : null}
 
       {resource === "paintings" ? (
-        <Toggle label="Prodáno" value={sold} onChange={setSold} />
+        <>
+          <Field label="Rok" hint="Kdy byl obraz namalován">
+            <input
+              className="input"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              placeholder="např. 2023"
+              value={year}
+              onChange={(event) => setYear(event.target.value)}
+            />
+          </Field>
+          <Toggle label="Prodáno" value={sold} onChange={setSold} />
+        </>
       ) : null}
 
       {isFeed ? (
@@ -319,6 +352,15 @@ export function EditSheet({
       ) : null}
     </Sheet>
   );
+}
+
+/** Empty is fine — it can be filled in later. Otherwise a plausible year. */
+function yearLooksRight(value: string): boolean {
+  const text = value.trim();
+  if (text === "") return true;
+  if (!/^\d{4}$/.test(text)) return false;
+  const year = Number(text);
+  return year >= 1900 && year <= new Date().getFullYear() + 1;
 }
 
 function PhotoPicker({

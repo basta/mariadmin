@@ -94,6 +94,7 @@ function Tile({
   item,
   lead,
   home,
+  noYear,
   onOpen,
 }: {
   item: Item;
@@ -101,6 +102,8 @@ function Tile({
   lead: boolean;
   /** Among the paintings the home page picks up. */
   home: boolean;
+  /** A painting whose year has not been filled in yet. */
+  noYear: boolean;
   onOpen: () => void;
 }) {
   const {
@@ -137,6 +140,7 @@ function Tile({
         draggable={false}
       />
       {item.sold ? <span className="tile__badge">Prodáno</span> : null}
+      {noYear ? <span className="tile__todo">Bez roku</span> : null}
       {lead ? <span className="tile__lead">Titulní</span> : null}
       {home ? <span className="tile__lead">Úvod</span> : null}
     </button>
@@ -249,12 +253,23 @@ export function GridTab({
     }
   }
 
+  const missingYear =
+    resource === "paintings" ? items.filter((item) => !item.year).length : 0;
+
   return (
     <>
       {resource === "paintings" && items.length > 0 ? (
         <p className="grid__hint">
           Pořadí změníte podržením a přetažením. Obrazy označené „Úvod“ jsou i
           na úvodní stránce.
+        </p>
+      ) : null}
+      {missingYear > 0 ? (
+        <p className="grid__hint grid__hint--todo">
+          {missingYear === 1
+            ? "U 1 obrazu chybí rok."
+            : `U ${missingYear} obrazů chybí rok.`}{" "}
+          Klepněte na obraz označený „Bez roku“ a doplňte ho.
         </p>
       ) : null}
       {groupsOf(resource, items).map((group, groupIndex) =>
@@ -289,6 +304,7 @@ export function GridTab({
                         resource === "paintings" &&
                         items.indexOf(item) < HOME_COUNT
                       }
+                      noYear={resource === "paintings" && !item.year}
                       onOpen={() => onOpen(item)}
                     />
                   ))}
