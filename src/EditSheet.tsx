@@ -7,9 +7,10 @@
  * find again.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { api, thumb, type Item, type Link, type Resource } from "./api";
+import { CertificateSheet } from "./CertificateSheet";
 import { createFeedItem, FEED_FIELDS } from "./FeedTab";
 import {
   Confirm,
@@ -88,6 +89,9 @@ export function EditSheet({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [certificate, setCertificate] = useState(false);
+  // Stable, because Sheet moves focus whenever its onClose changes.
+  const closeCertificate = useCallback(() => setCertificate(false), []);
 
   // A local preview of a photograph that has not been uploaded yet, and no
   // object URL left behind when it is replaced or the sheet closes.
@@ -201,6 +205,20 @@ export function EditSheet({
     }
   }
 
+  // In place of this sheet rather than on top of it: two open sheets would both
+  // answer Escape. This component stays mounted, so unsaved edits are still here
+  // when she comes back.
+  if (certificate && item) {
+    return (
+      <CertificateSheet
+        id={item.id}
+        title={title}
+        year={year}
+        onClose={closeCertificate}
+      />
+    );
+  }
+
   return (
     <Sheet
       title={isNew ? TITLE[resource].add : TITLE[resource].edit}
@@ -267,6 +285,16 @@ export function EditSheet({
             />
           </Field>
           <Toggle label="Prodáno" value={sold} onChange={setSold} />
+          {!isNew ? (
+            <button
+              type="button"
+              className="btn btn--wide"
+              disabled={busy}
+              onClick={() => setCertificate(true)}
+            >
+              Vytvořit certifikát
+            </button>
+          ) : null}
         </>
       ) : null}
 

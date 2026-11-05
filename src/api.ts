@@ -58,6 +58,16 @@ export interface Item {
   video_url?: string | null;
 }
 
+/** What goes on a certificate. Sent, printed, and never stored. */
+export interface CertificateFields {
+  title: string;
+  year: string;
+  technique: string;
+  size: string;
+  buyer: string;
+  date: string;
+}
+
 export interface PendingItem {
   ts: number;
   text_cs: string;
@@ -84,14 +94,16 @@ export class Unauthorized extends Error {}
 /** Any other refusal, carrying the server's Czech sentence. */
 export class ApiError extends Error {}
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function send(path: string, init: RequestInit): Promise<Response> {
   let response: Response;
   try {
     response = await fetch(`/api${path}`, {
       credentials: "same-origin",
       ...init,
     });
-  } catch {
+  } catch (error) {
+    // Called off by the caller, not by the network, so it is not news to anyone.
+    if (init.signal?.aborted) throw error;
     // A dropped connection is the failure she will actually meet, standing in
     // a salon with one bar of signal.
     throw new ApiError("Není připojení k internetu.");
@@ -102,26 +114,41 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   // přihlášena" told her she was not logged in while she was trying to.
   if (response.status === 401 && path !== "/login")
     throw new Unauthorized("Nejste přihlášena.");
+  return response;
+}
+
+function parse(body: string): unknown {
+  try {
+    return body ? JSON.parse(body) : null;
+  } catch {
+    return null;
+  }
+}
+
+function refusal(parsed: unknown): ApiError {
+  const detail =
+    parsed && typeof parsed === "object" && "detail" in parsed
+      ? (parsed as { detail: unknown }).detail
+      : null;
+  return new ApiError(
+    typeof detail === "string" ? detail : "Něco se nepovedlo.",
+  );
+}
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const response = await send(path, init);
   if (response.status === 204) return undefined as T;
 
-  const body = await response.text();
-  let parsed: unknown = null;
-  try {
-    parsed = body ? JSON.parse(body) : null;
-  } catch {
-    parsed = null;
-  }
-
-  if (!response.ok) {
-    const detail =
-      parsed && typeof parsed === "object" && "detail" in parsed
-        ? (parsed as { detail: unknown }).detail
-        : null;
-    throw new ApiError(
-      typeof detail === "string" ? detail : "Něco se nepovedlo.",
-    );
-  }
+  const parsed = parse(await response.text());
+  if (!response.ok) throw refusal(parsed);
   return parsed as T;
+}
+
+/** For the routes that answer with a file: JSON only if they refuse. */
+async function requestFile(path: string, init: RequestInit): Promise<Blob> {
+  const response = await send(path, init);
+  if (!response.ok) throw refusal(parse(await response.text()));
+  return response.blob();
 }
 
 function json(method: string, body: unknown): RequestInit {
@@ -161,6 +188,18 @@ export const api = {
       body: form,
     });
   },
+
+  certificate: (id: number, fields: CertificateFields) =>
+    requestFile(`/paintings/${id}/certificate`, json("POST", fields)),
+  certificatePreview: (
+    id: number,
+    fields: CertificateFields,
+    signal: AbortSignal,
+  ) =>
+    requestFile(`/paintings/${id}/certificate/preview`, {
+      ...json("POST", fields),
+      signal,
+    }),
 
   pending: () => request<Pending>("/pending"),
   discard: () => request<{ ok: true }>("/pending/discard", { method: "POST" }),
